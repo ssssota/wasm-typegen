@@ -1,0 +1,29 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'
+        type: choice
+        options:
+          - 'major'
+          - 'minor'
+          - 'patch'
+jobs:
+  check:
+    permissions:
+      contents: write # to push tags
+      id-token: write # to publish to npm with provenance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: ./.github/actions/setup
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm version ${{ github.event.inputs.version }}
+      - run: pnpm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: git push && git push --tags

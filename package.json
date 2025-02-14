@@ -1,7 +1,7 @@
 {
 	"name": "wasm-typegen",
 	"description": "Generate import and export types from WebAssembly binary",
-	"version": "0.1.0",
+	"version": "0.0.0",
 	"type": "module",
 	"main": "dist/index.js",
 	"exports": {
@@ -20,7 +20,8 @@
 		"clean": "node -e 'fs.rmSync(`dist`,{recursive:true,force:true})'",
 		"prepare": "node --run clean && node --run build",
 		"lint": "biome check . && tsc --noEmit",
-		"fmt": "biome check . --write"
+		"fmt": "biome check . --write",
+		"version": "node --run fmt"
 	},
 	"keywords": ["webassembly", "generator", "typescript"],
 	"author": "TOMIKAWA Sotaro",
