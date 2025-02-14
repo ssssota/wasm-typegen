@@ -5,6 +5,7 @@ on:
       version:
         description: 'Version'
         type: choice
+        default: 'patch'
         options:
           - 'major'
           - 'minor'
@@ -26,7 +27,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
       - run: pnpm version ${{ github.event.inputs.version }}
-      - run: pnpm publish --access public --provenance
+      - run: npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: pnpm publish --access public --provenance
       - run: git push && git push --tags
