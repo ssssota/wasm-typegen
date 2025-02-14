@@ -18,6 +18,14 @@ const { values } = parseArgs({
 			type: "string",
 			short: "o",
 		},
+		indent: {
+			type: "string",
+			short: "i",
+		},
+		newline: {
+			type: "string",
+			short: "n",
+		},
 	},
 });
 if (values.help || !values.wasm) {
@@ -26,10 +34,24 @@ if (values.help || !values.wasm) {
 }
 const wasmPath = path.resolve(values.wasm);
 const wasmBuf = fs.readFileSync(wasmPath);
-const types = generateWasmTypes(wasmBuf);
+const types = generateWasmTypes(wasmBuf, {
+	indent: resolveIndent(values.indent),
+	newline: values.newline === "crlf" ? "\r\n" : "\n",
+});
 if (values.out) {
 	const outPath = path.resolve(values.out);
 	fs.writeFileSync(outPath, types);
 } else {
 	console.log(types);
+}
+
+function resolveIndent(indent: string | undefined): string | undefined {
+	if (indent === undefined || indent === "tab") {
+		return undefined;
+	}
+	const maybeNum = Number(indent);
+	if (Number.isSafeInteger(maybeNum)) {
+		return " ".repeat(maybeNum);
+	}
+	return indent;
 }
