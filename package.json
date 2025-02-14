@@ -13,10 +13,12 @@
 	"bin": {
 		"wasm-typegen": "./bin.js"
 	},
+	"files": ["dist", "bin.js"],
 	"scripts": {
 		"test": "vitest",
 		"build": "tsc --build",
-		"clean": "node -e 'fs.rmSync(`dist`,{recursive:true,force:true})'"
+		"clean": "node -e 'fs.rmSync(`dist`,{recursive:true,force:true})'",
+		"prepare": "node --run clean && node --run build"
 	},
 	"keywords": ["webassembly", "generator", "typescript"],
 	"author": "TOMIKAWA Sotaro",
