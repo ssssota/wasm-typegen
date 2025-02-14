@@ -1,7 +1,6 @@
-import assert from "node:assert";
-import { test } from "node:test";
+import { assert, test } from "vitest";
 import initializeWabt from "wabt";
-import { generateWasmModuleType } from "./index.ts";
+import { generateWasmTypes } from "./index.js";
 async function wat2wasm(wat: string): Promise<Uint8Array> {
 	const wabt = await initializeWabt();
 	const mod = wabt.parseWat("test.wat", wat);
@@ -15,7 +14,7 @@ test("import and export", async () => {
 		local.get 0
 		local.get 1
 		i32.add))`);
-	const actual = generateWasmModuleType(wasm);
+	const actual = generateWasmTypes(wasm);
 	assert.strictEqual(
 		actual,
 		`\
@@ -37,7 +36,7 @@ type Exports = {
 
 test("no imports and exports", async () => {
 	const wasm = await wat2wasm("(module)");
-	const actual = generateWasmModuleType(wasm);
+	const actual = generateWasmTypes(wasm);
 	assert.strictEqual(
 		actual,
 		`\
@@ -55,7 +54,7 @@ test("single import, single param, single result", async () => {
 	const wasm = await wat2wasm(`\
 (module
 	(import "env" "log" (func $log (param i32))))`);
-	const actual = generateWasmModuleType(wasm);
+	const actual = generateWasmTypes(wasm);
 	assert.strictEqual(
 		actual,
 		`\
@@ -79,7 +78,7 @@ test("multiple imports, multiple params, multiple results", async () => {
 	(import "env" "log" (func $log (param i32)))
 	(import "env" "add" (func $add (param i32 i32) (result i32)))
 	(import "env" "sub" (func $sub (param i32 i32) (result i32 i32))))`);
-	const actual = generateWasmModuleType(wasm);
+	const actual = generateWasmTypes(wasm);
 	assert.strictEqual(
 		actual,
 		`\
@@ -108,7 +107,7 @@ test("single export, single param, single result", async () => {
 		local.get 0
 		local.get 1
 		i32.add))`);
-	const actual = generateWasmModuleType(wasm);
+	const actual = generateWasmTypes(wasm);
 	assert.strictEqual(
 		actual,
 		`\
@@ -140,7 +139,7 @@ test("multiple exports, multiple params, multiple results", async () => {
 		local.get 1
 		i32.mul)
 	(export "getAnswer" (func $getAnswer)))`);
-	const actual = generateWasmModuleType(wasm);
+	const actual = generateWasmTypes(wasm);
 	assert.strictEqual(
 		actual,
 		`\
@@ -163,7 +162,7 @@ test("memory import", async () => {
 	const wasm = await wat2wasm(`\
 (module
 	(import "env" "memory" (memory 1)))`);
-	const actual = generateWasmModuleType(wasm);
+	const actual = generateWasmTypes(wasm);
 	assert.strictEqual(
 		actual,
 		`\
@@ -186,7 +185,7 @@ test("memory export", async () => {
 (module
 	(memory 1)
 	(export "memory" (memory 0)))`);
-	const actual = generateWasmModuleType(wasm);
+	const actual = generateWasmTypes(wasm);
 	assert.strictEqual(
 		actual,
 		`\
@@ -206,7 +205,7 @@ test("global import", async () => {
 	const wasm = await wat2wasm(`\
 (module
 	(import "env" "global" (global i32)))`);
-	const actual = generateWasmModuleType(wasm);
+	const actual = generateWasmTypes(wasm);
 	assert.strictEqual(
 		actual,
 		`\
@@ -228,7 +227,7 @@ test("global export", async () => {
 	const wasm = await wat2wasm(`\
 (module
 	(global (export "global") i32 (i32.const 42)))`);
-	const actual = generateWasmModuleType(wasm);
+	const actual = generateWasmTypes(wasm);
 	assert.strictEqual(
 		actual,
 		`\
@@ -248,7 +247,7 @@ test("table import", async () => {
 	const wasm = await wat2wasm(`\
 (module
 	(import "env" "table" (table 1 funcref)))`);
-	const actual = generateWasmModuleType(wasm);
+	const actual = generateWasmTypes(wasm);
 	assert.strictEqual(
 		actual,
 		`\
@@ -271,7 +270,7 @@ test("table export", async () => {
 (module
 	(table 1 funcref)
 	(export "table" (table 0)))`);
-	const actual = generateWasmModuleType(wasm);
+	const actual = generateWasmTypes(wasm);
 	assert.strictEqual(
 		actual,
 		`\

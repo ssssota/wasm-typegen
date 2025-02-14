@@ -11,7 +11,7 @@
 		}
 	},
 	"scripts": {
-		"test": "node --test --experimental-strip-types",
+		"test": "vitest",
 		"build": "tsc --build",
 		"clean": "node -e 'fs.rmSync(`dist`,{recursive:true,force:true})'"
 	},
@@ -28,6 +28,7 @@
 		"@types/node": "^22.13.4",
 		"@webassemblyjs/wast-printer": "^1.14.1",
 		"typescript": "^5.7.3",
+		"vitest": "^3.0.5",
 		"wabt": "^1.0.36"
 	}
 }
