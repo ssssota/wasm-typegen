@@ -9,5 +9,5 @@ export function generateWasmTypes(
 	buf: BufferSource,
 	options?: Options,
 ): string {
-	return new WasmTypesGenerator(options).generate(buf);
+	return new WasmTypesGenerator(buf, options).generate();
 }

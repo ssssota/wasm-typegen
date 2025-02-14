@@ -18,42 +18,50 @@ export type Options = {
 	newline?: "\n" | "\r\n";
 };
 export class WasmTypesGenerator {
-	#indent = "\t";
-	#newline = "\n";
-	constructor(opts: Options = {}) {
-		if (typeof opts.indent === "string") this.#indent = opts.indent;
-		if (typeof opts.newline === "string") this.#newline = opts.newline;
-	}
+	#importModuleMap = new Map<string, ModuleImport[]>();
+	#exportNodes: ModuleExport[] = [];
+	#funcNodes: (Func | FuncImportDescr)[] = [];
 
-	generate(buf: BufferSource): string {
-		const ast = decode(toArrayBuffer(buf), {
+	constructor(
+		private buf: BufferSource,
+		private opts: Options = {},
+	) {
+		const ast = decode(toArrayBuffer(this.buf), {
 			ignoreDataSection: true,
 			ignoreCodeSection: true,
 		});
-		const importModuleMap = new Map<string, ModuleImport[]>();
-		const exportNodes: ModuleExport[] = [];
-		const funcNodes: (Func | FuncImportDescr)[] = [];
 		traverse(ast, {
-			ModuleExport(path) {
-				exportNodes.push(path.node);
+			ModuleExport: (path) => {
+				this.#exportNodes.push(path.node);
 			},
-			ModuleImport(path) {
+			ModuleImport: (path) => {
 				const module = path.node.module;
-				const inModules = importModuleMap.get(module);
+				const inModules = this.#importModuleMap.get(module);
 				if (inModules) {
 					inModules.push(path.node);
 				} else {
-					importModuleMap.set(module, [path.node]);
+					this.#importModuleMap.set(module, [path.node]);
 				}
 			},
-			Func(path) {
-				funcNodes.push(path.node);
+			Func: (path) => {
+				this.#funcNodes.push(path.node);
 			},
-			FuncImportDescr(path) {
-				funcNodes.push(path.node);
+			FuncImportDescr: (path) => {
+				this.#funcNodes.push(path.node);
 			},
 		});
+	}
+	get #indent(): string {
+		if (this.opts.indent === undefined) return "\t";
+		if (typeof this.opts.indent === "number")
+			return " ".repeat(this.opts.indent);
+		return this.opts.indent;
+	}
+	get #newline(): "\n" | "\r\n" {
+		return this.opts.newline ?? "\n";
+	}
 
+	generate(): string {
 		let ret = `\
 type i32 = number & Record<never, never>;
 type i64 = bigint & Record<never, never>;
@@ -62,7 +70,7 @@ type f64 = number & Record<never, never>;
 `;
 		ret += this.#block(
 			"type Imports = ",
-			Array.from(importModuleMap.entries(), ([module, imports]) => {
+			Array.from(this.#importModuleMap.entries(), ([module, imports]) => {
 				return this.#block(
 					`${module}: `,
 					imports
@@ -92,7 +100,7 @@ type f64 = number & Record<never, never>;
 
 		ret += this.#block(
 			"type Exports = ",
-			exportNodes
+			this.#exportNodes
 				.map((exportNode) => {
 					switch (exportNode.descr.exportType) {
 						case "Memory":
@@ -104,7 +112,7 @@ type f64 = number & Record<never, never>;
 						case "Func": {
 							const { params, results } = WasmTypesGenerator.#resolveSignature(
 								exportNode.descr.id,
-								funcNodes,
+								this.#funcNodes,
 							);
 							const paramsStr = WasmTypesGenerator.#paramsToString(params);
 							const resultsStr = WasmTypesGenerator.#resultsToString(results);
