@@ -1,7 +1,7 @@
 {
 	"name": "wasm-typegen",
 	"description": "Generate import and export types from WebAssembly binary",
-	"version": "1.0.0",
+	"version": "0.1.0",
 	"type": "module",
 	"main": "dist/index.js",
 	"exports": {
