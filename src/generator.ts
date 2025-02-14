@@ -18,9 +18,15 @@ export type Options = {
 	newline?: "\n" | "\r\n";
 };
 export class WasmTypesGenerator {
-	#importModuleMap = new Map<string, ModuleImport[]>();
-	#exportNodes: ModuleExport[] = [];
-	#funcNodes: (Func | FuncImportDescr)[] = [];
+	readonly #importModuleMap = new Map<string, ModuleImport[]>();
+	readonly #exportNodes: ModuleExport[] = [];
+	readonly #funcNodes: (Func | FuncImportDescr)[] = [];
+	readonly #valtypeUsed = {
+		i32: false,
+		i64: false,
+		f32: false,
+		f64: false,
+	};
 
 	constructor(
 		private buf: BufferSource,
@@ -62,69 +68,90 @@ export class WasmTypesGenerator {
 	}
 
 	generate(): string {
-		let ret = `\
-type i32 = number & Record<never, never>;
-type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
-`;
-		ret += this.#block(
-			"type Imports = ",
-			Array.from(this.#importModuleMap.entries(), ([module, imports]) => {
-				return this.#block(
-					`${module}: `,
-					imports
-						.map((importNode) => {
-							switch (importNode.descr.type) {
-								case "Memory":
-									return `${importNode.name}: WebAssembly.Memory;`;
-								case "GlobalType":
-									return `${importNode.name}: WebAssembly.Global;`;
-								case "Table":
-									return `${importNode.name}: WebAssembly.Table;`;
-								case "FuncImportDescr": {
-									const { params, results } = importNode.descr.signature;
-									const paramsStr = WasmTypesGenerator.#paramsToString(params);
-									const resultsStr =
-										WasmTypesGenerator.#resultsToString(results);
-									return `${importNode.name}(${paramsStr}): ${resultsStr};`;
+		const stmts = [];
+		stmts.push(
+			this.#block(
+				"type Imports = ",
+				Array.from(this.#importModuleMap.entries(), ([module, imports]) => {
+					return this.#block(
+						`${module}: `,
+						imports
+							.map((importNode) => {
+								switch (importNode.descr.type) {
+									case "Memory":
+										return `${importNode.name}: WebAssembly.Memory;`;
+									case "GlobalType":
+										return `${importNode.name}: WebAssembly.Global;`;
+									case "Table":
+										return `${importNode.name}: WebAssembly.Table;`;
+									case "FuncImportDescr": {
+										const { params, results } = importNode.descr.signature;
+										const paramsStr = this.#paramsToString(params);
+										const resultsStr = this.#resultsToString(results);
+										return `${importNode.name}(${paramsStr}): ${resultsStr};`;
+									}
 								}
+							})
+							.join(this.#newline),
+						";",
+					);
+				}).join(this.#newline),
+				";",
+			),
+		);
+
+		stmts.push(
+			this.#block(
+				"type Exports = ",
+				this.#exportNodes
+					.map((exportNode) => {
+						switch (exportNode.descr.exportType) {
+							case "Memory":
+								return `${exportNode.name}: WebAssembly.Memory;`;
+							case "Global":
+								return `${exportNode.name}: WebAssembly.Global;`;
+							case "Table":
+								return `${exportNode.name}: WebAssembly.Table;`;
+							case "Func": {
+								const { params, results } =
+									WasmTypesGenerator.#resolveSignature(
+										exportNode.descr.id,
+										this.#funcNodes,
+									);
+								const paramsStr = this.#paramsToString(params);
+								const resultsStr = this.#resultsToString(results);
+								return `${exportNode.name}(${paramsStr}): ${resultsStr};`;
 							}
-						})
-						.join("\n"),
-					";",
-				);
-			}).join("\n"),
-			";\n",
-		);
-
-		ret += this.#block(
-			"type Exports = ",
-			this.#exportNodes
-				.map((exportNode) => {
-					switch (exportNode.descr.exportType) {
-						case "Memory":
-							return `${exportNode.name}: WebAssembly.Memory;`;
-						case "Global":
-							return `${exportNode.name}: WebAssembly.Global;`;
-						case "Table":
-							return `${exportNode.name}: WebAssembly.Table;`;
-						case "Func": {
-							const { params, results } = WasmTypesGenerator.#resolveSignature(
-								exportNode.descr.id,
-								this.#funcNodes,
-							);
-							const paramsStr = WasmTypesGenerator.#paramsToString(params);
-							const resultsStr = WasmTypesGenerator.#resultsToString(results);
-							return `${exportNode.name}(${paramsStr}): ${resultsStr};`;
 						}
-					}
-				})
-				.join("\n"),
-			";\n",
+					})
+					.join(this.#newline),
+				";",
+			),
 		);
 
-		return ret;
+		if (this.#valtypeUsed.i32)
+			stmts.unshift("type i32 = number & Record<never, never>;");
+		if (this.#valtypeUsed.i64)
+			stmts.unshift("type i64 = bigint & Record<never, never>;");
+		if (this.#valtypeUsed.f32)
+			stmts.unshift("type f32 = number & Record<never, never>;");
+		if (this.#valtypeUsed.f64)
+			stmts.unshift("type f64 = number & Record<never, never>;");
+
+		return stmts.join(this.#newline) + this.#newline;
+	}
+
+	#valtype(valtype: string): string {
+		switch (valtype) {
+			case "i32":
+			case "i64":
+			case "f32":
+			case "f64":
+				this.#valtypeUsed[valtype] = true;
+				return valtype;
+			default:
+				return "any";
+		}
 	}
 
 	#block(prefix = "", str = "", suffix = ""): string {
@@ -136,18 +163,20 @@ type f64 = number & Record<never, never>;
 		].join(this.#newline);
 	}
 
-	static #paramsToString(params: Array<{ valtype: string }>): string {
+	#paramsToString(params: Array<{ valtype: string }>): string {
 		if (params.length === 0) return "";
-		return params.map((p, i) => `p${i}: ${p.valtype}`).join(", ");
+		return params
+			.map((p, i) => `p${i}: ${this.#valtype(p.valtype)}`)
+			.join(", ");
 	}
-	static #resultsToString(results: Array<string>): string {
+	#resultsToString(results: Array<string>): string {
 		if (results.length === 0) {
 			return "void";
 		}
 		if (results.length === 1) {
-			return results[0];
+			return this.#valtype(results[0]);
 		}
-		return `[${results.join(", ")}]`;
+		return `[${results.map(this.#valtype.bind(this)).join(", ")}]`;
 	}
 	static #resolveSignature(
 		id: NumberLiteral | Identifier,

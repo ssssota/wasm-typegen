@@ -19,9 +19,6 @@ test("import and export", async () => {
 		actual,
 		`\
 type i32 = number & Record<never, never>;
-type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
 type Imports = {
 	env: {
 		log(p0: i32): void;
@@ -40,10 +37,6 @@ test("no imports and exports", async () => {
 	assert.strictEqual(
 		actual,
 		`\
-type i32 = number & Record<never, never>;
-type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
 type Imports = {};
 type Exports = {};
 `,
@@ -59,9 +52,6 @@ test("single import, single param, single result", async () => {
 		actual,
 		`\
 type i32 = number & Record<never, never>;
-type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
 type Imports = {
 	env: {
 		log(p0: i32): void;
@@ -82,10 +72,8 @@ test("multiple imports, multiple params, multiple results", async () => {
 	assert.strictEqual(
 		actual,
 		`\
-type i32 = number & Record<never, never>;
 type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
+type i32 = number & Record<never, never>;
 type Imports = {
 	date: {
 		now(): i64;
@@ -112,9 +100,6 @@ test("single export, single param, single result", async () => {
 		actual,
 		`\
 type i32 = number & Record<never, never>;
-type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
 type Imports = {};
 type Exports = {
 	addTwo(p0: i32, p1: i32): i32;
@@ -144,9 +129,6 @@ test("multiple exports, multiple params, multiple results", async () => {
 		actual,
 		`\
 type i32 = number & Record<never, never>;
-type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
 type Imports = {};
 type Exports = {
 	addTwo(p0: i32, p1: i32): i32;
@@ -166,10 +148,6 @@ test("memory import", async () => {
 	assert.strictEqual(
 		actual,
 		`\
-type i32 = number & Record<never, never>;
-type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
 type Imports = {
 	env: {
 		memory: WebAssembly.Memory;
@@ -189,10 +167,6 @@ test("memory export", async () => {
 	assert.strictEqual(
 		actual,
 		`\
-type i32 = number & Record<never, never>;
-type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
 type Imports = {};
 type Exports = {
 	memory: WebAssembly.Memory;
@@ -209,10 +183,6 @@ test("global import", async () => {
 	assert.strictEqual(
 		actual,
 		`\
-type i32 = number & Record<never, never>;
-type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
 type Imports = {
 	env: {
 		global: WebAssembly.Global;
@@ -231,10 +201,6 @@ test("global export", async () => {
 	assert.strictEqual(
 		actual,
 		`\
-type i32 = number & Record<never, never>;
-type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
 type Imports = {};
 type Exports = {
 	global: WebAssembly.Global;
@@ -251,10 +217,6 @@ test("table import", async () => {
 	assert.strictEqual(
 		actual,
 		`\
-type i32 = number & Record<never, never>;
-type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
 type Imports = {
 	env: {
 		table: WebAssembly.Table;
@@ -274,10 +236,6 @@ test("table export", async () => {
 	assert.strictEqual(
 		actual,
 		`\
-type i32 = number & Record<never, never>;
-type i64 = bigint & Record<never, never>;
-type f32 = number & Record<never, never>;
-type f64 = number & Record<never, never>;
 type Imports = {};
 type Exports = {
 	table: WebAssembly.Table;
