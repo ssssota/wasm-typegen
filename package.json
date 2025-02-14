@@ -1,0 +1,33 @@
+{
+	"name": "wasm-typegen",
+	"description": "Generate import and export types from WebAssembly binary",
+	"version": "1.0.0",
+	"type": "module",
+	"main": "dist/index.js",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"test": "node --test --experimental-strip-types",
+		"build": "tsc --build",
+		"clean": "node -e 'fs.rmSync(`dist`,{recursive:true,force:true})'"
+	},
+	"keywords": ["webassembly", "generator", "typescript"],
+	"author": "TOMIKAWA Sotaro",
+	"license": "MIT",
+	"dependencies": {
+		"@webassemblyjs/ast": "^1.14.1",
+		"@webassemblyjs/wasm-parser": "^1.14.1"
+	},
+	"packageManager": "pnpm@10.3.0+sha512.ee592eda8815a8a293c206bb0917c4bb0ff274c50def7cbc17be05ec641fc2d1b02490ce660061356bd0d126a4d7eb2ec8830e6959fb8a447571c631d5a2442d",
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@types/node": "^22.13.4",
+		"@webassemblyjs/wast-printer": "^1.14.1",
+		"typescript": "^5.7.3",
+		"wabt": "^1.0.36"
+	}
+}
