@@ -26,6 +26,16 @@ const { values } = parseArgs({
 			type: "string",
 			short: "n",
 		},
+		banner: {
+			type: "string",
+			short: "b",
+		},
+		noEmitInstantiateFunc: {
+			type: "boolean",
+		},
+		preferInterface: {
+			type: "boolean",
+		},
 	},
 });
 if (values.help || !values.wasm) {
@@ -37,6 +47,9 @@ const wasmBuf = fs.readFileSync(wasmPath);
 const types = generateWasmTypes(wasmBuf, {
 	indent: resolveIndent(values.indent),
 	newline: values.newline === "crlf" ? "\r\n" : "\n",
+	banner: values.banner,
+	noEmitInstantiateFunc: values.noEmitInstantiateFunc,
+	preferInterface: values.preferInterface,
 });
 if (values.out) {
 	const outPath = path.resolve(values.out);
