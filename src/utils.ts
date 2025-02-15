@@ -11,3 +11,7 @@ export function indent(str: string, indent = "\t", newline = "\n"): string {
 		.map((line) => indent + line)
 		.join(newline);
 }
+
+export function isIdentifier(str: string): boolean {
+	return /^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(str);
+}
