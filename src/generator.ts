@@ -117,7 +117,7 @@ export function instantiateStreaming(source: Response | PromiseLike<Response>, i
 								}
 							})
 							.join(this.#newline),
-						this.opts.preferInterface ? "" : ";",
+						";",
 					);
 				}).join(this.#newline),
 				this.opts.preferInterface ? "" : ";",
