@@ -278,7 +278,7 @@ test("prefer interface", async () => {
 		export interface Imports {
 			console: {
 				log(p0: i32): void;
-			}
+			};
 		}
 		export interface Exports {
 			addTwo(p0: i32, p1: i32): i32;
