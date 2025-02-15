@@ -11,3 +11,4 @@ export function generateWasmTypes(
 ): string {
 	return new WasmTypesGenerator(buf, options).generate();
 }
+export type { Options };
